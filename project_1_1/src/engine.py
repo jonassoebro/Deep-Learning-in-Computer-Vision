@@ -34,8 +34,9 @@ class EngineModule(pl.LightningModule):
         self.log('loss', loss, on_step=False, on_epoch=True, prog_bar=False, logger=True)
         self.log('lr', self.lr, on_step=False, on_epoch=True, prog_bar=False, logger=True)
       
-        
-        train_acc = (self.train_acc((pred>0.5).float() ,device=pred.device), labels.type(torch.IntTensor).to(device='cuda:0'))
+        pred_bin = torch.Tensor(self.train_acc((pred>0.5).float(), device=pred.device))
+        int_labels = torch.Tensor(labels.type(torch.IntTensor), device=labels.device)
+        train_acc = (pred_bin, int_labels)
         
         self.log('train_acc', train_acc, on_step=True, on_epoch=False)
         return {'loss': loss, 'train_acc': train_acc}
