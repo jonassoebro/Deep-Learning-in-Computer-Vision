@@ -45,7 +45,7 @@ class EngineModule(pl.LightningModule):
         pred = self.model(images).squeeze()  # [Bx1] -> [B]
         loss = self.loss_func(pred, labels.type(torch.float32))
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.valid_acc(logits, y)
+        self.valid_acc(pred, y)
         self.log('valid_acc', self.valid_acc, on_step=True, on_epoch=True)
         return {'val_loss': loss, 'valid_acc': valid_acc}
 
