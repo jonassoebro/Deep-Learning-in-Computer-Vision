@@ -14,6 +14,10 @@ class EngineModule(pl.LightningModule):
         self.config = config
         self.model = Model(pretrained=config.model.pretrained, in_dim=config.model.in_dim, out_dim=config.model.out_dim)
         self.loss_func = nn.BCEWithLogitsLoss()
+        
+        self.train_acc = torchmetrics.Accuracy()
+        self.valid_acc = torchmetrics.Accuracy()
+        
 
     @property
     def lr(self):
@@ -21,40 +25,17 @@ class EngineModule(pl.LightningModule):
 
     def forward(self, x):
         return self.model(x)
-
-    def compute_metrics(self, pred, target, num_classes=2):
-        metric_name = self.config.training.metric
-        
-        pred = (pred>0.5).float()
-        target = target.type(torch.IntTensor)
-        pred = pred.to(device=torch.device("cuda:0"))
-        target = target.to(device=torch.device("cuda:0"))
-            
-        if metric_name == "F1":
-            f1 = torchmetrics.F1(num_classes=num_classes, multiclass=True)
-
-            #print(pred.shape)
-            #print(target.shape)
-            metric = f1(pred, target)
-            return metric
-        
-        if metric_name == "Accuracy":
-            accuracy = torchmetrics.Accuracy(num_classes=num_classes, multiclass =True)
-            metric = accuracy(pred, target)
-            return metric
-        else:
-            raise ValueError(f'{metric} not in metrics')
             
             
     def training_step(self, batch, batch_idx):
         images, labels = batch
         pred = self.model(images).squeeze()  # [Bx1] -> [B]
         loss = self.loss_func(pred, labels.type(torch.float32))
-        metric = self.compute_metrics(pred, labels)
-        self.log('metric', metric, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('loss', loss, on_step=False, on_epoch=True, prog_bar=False, logger=True)
         self.log('lr', self.lr, on_step=False, on_epoch=True, prog_bar=False, logger=True)
-        return {'loss': loss, 'metric': metric}
+        self.train_acc(preds, y)
+        self.log('train_acc', self.train_acc, on_step=True, on_epoch=False)
+        return {'loss': loss, 'train_acc': train_acc}
 
     def training_epoch_end(self, outputs: list):
         pass
@@ -63,10 +44,10 @@ class EngineModule(pl.LightningModule):
         images, labels = batch
         pred = self.model(images).squeeze()  # [Bx1] -> [B]
         loss = self.loss_func(pred, labels.type(torch.float32))
-        metric = self.compute_metrics(pred, labels.type(torch.float32))
-        self.log('metric', metric, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        return {'val_loss': loss, 'metric': metric}
+        self.valid_acc(logits, y)
+        self.log('valid_acc', self.valid_acc, on_step=True, on_epoch=True)
+        return {'val_loss': loss, 'valid_acc': valid_acc}
 
     def validation_epoch_end(self, outputs: list):
         pass
