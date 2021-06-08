@@ -26,6 +26,7 @@ training:
     factor: 0.5
   model_checkpoint:
     monitor: 'val_loss'
+  metric: 'F1'
 data:
   size: 224
   path: './data/'
