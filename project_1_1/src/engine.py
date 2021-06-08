@@ -2,6 +2,7 @@ from omegaconf import DictConfig
 import pytorch_lightning as pl
 import torch
 from torch import nn
+import torchmetrics
 
 from .model import Model
 
@@ -21,23 +22,39 @@ class EngineModule(pl.LightningModule):
     def forward(self, x):
         return self.model(x)
 
+    def compute_metrics(self, pred, target):
+        metric_name = self.config.training.metric
+        if metric_name == "F1":
+            metric = torchmetrics.F1(pred, target)
+            return metric
+        
+        if metric_name == "Accuracy":
+            metric = torchmetrics.Accuracy(pred, target)
+        else:
+            raise ValueError(f'{metric} not in metrics')
+            
+            
     def training_step(self, batch, batch_idx):
         images, labels = batch
         pred = self.model(images).squeeze()  # [Bx1] -> [B]
         loss = self.loss_func(pred, labels.type(torch.float32))
+        metric = self.compute_metrics(pred, labels.type(torch.float32))
+        self.log('metric', metric, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('loss', loss, on_step=False, on_epoch=True, prog_bar=False, logger=True)
         self.log('lr', self.lr, on_step=False, on_epoch=True, prog_bar=False, logger=True)
-        return {'loss': loss}
+        return {'loss': loss, 'metric': metric}
 
     def training_epoch_end(self, outputs: list):
         pass
-
+            
     def validation_step(self, batch, batch_idx):
         images, labels = batch
         pred = self.model(images).squeeze()  # [Bx1] -> [B]
         loss = self.loss_func(pred, labels.type(torch.float32))
+        metric = self.compute_metrics(pred, labels.type(torch.float32))
+        self.log('metric', metric, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        return {'val_loss': loss}
+        return {'val_loss': loss, 'metric': metric}
 
     def validation_epoch_end(self, outputs: list):
         pass
