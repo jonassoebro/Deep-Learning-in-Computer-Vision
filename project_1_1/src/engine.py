@@ -26,6 +26,8 @@ class EngineModule(pl.LightningModule):
         metric_name = self.config.training.metric
         if metric_name == "F1":
             f1 = torchmetrics.F1(num_classes=num_classes)
+            print(pred)
+            print(target)
             metric = f1(pred, target)
             return metric
         
