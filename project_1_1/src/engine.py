@@ -26,8 +26,10 @@ class EngineModule(pl.LightningModule):
         metric_name = self.config.training.metric
         if metric_name == "F1":
             f1 = torchmetrics.F1(num_classes=num_classes, multiclass=True)
-            print(pred.shape)
-            print(target.shape)
+            
+            target = target.type(torch.IntTensor)
+            #print(pred.shape)
+            #print(target.shape)
             metric = f1(pred, target)
             return metric
         
