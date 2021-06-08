@@ -22,14 +22,17 @@ class EngineModule(pl.LightningModule):
     def forward(self, x):
         return self.model(x)
 
-    def compute_metrics(self, pred, target):
+    def compute_metrics(self, pred, target, num_classes):
         metric_name = self.config.training.metric
         if metric_name == "F1":
-            metric = torchmetrics.F1(pred, target)
+            f1 = F1(num_classes=num_classes)
+            metric = f1(pred, target)
             return metric
         
         if metric_name == "Accuracy":
-            metric = torchmetrics.Accuracy(pred, target)
+            accuracy = torchmetrics.Accuracy()
+            metric = accuracy(pred, target)
+            return metric
         else:
             raise ValueError(f'{metric} not in metrics')
             
