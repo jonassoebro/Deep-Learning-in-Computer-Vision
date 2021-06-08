@@ -27,6 +27,8 @@ class EngineModule(pl.LightningModule):
         
         pred = (pred>0.5).float()
         target = target.type(torch.IntTensor)
+        pred = pred.to(device=torch.device("cuda:0"))
+        target = target.to(device=torch.device("cuda:0"))
             
         if metric_name == "F1":
             f1 = torchmetrics.F1(num_classes=num_classes, multiclass=True)
