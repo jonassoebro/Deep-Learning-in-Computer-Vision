@@ -25,14 +25,14 @@ class EngineModule(pl.LightningModule):
     def compute_metrics(self, pred, target, num_classes=2):
         metric_name = self.config.training.metric
         if metric_name == "F1":
-            f1 = torchmetrics.F1(num_classes=num_classes, threshold=0.5)
+            f1 = torchmetrics.F1(num_classes=num_classes, multiclass=True)
             print(pred.shape)
             print(target.shape)
             metric = f1(pred, target)
             return metric
         
         if metric_name == "Accuracy":
-            accuracy = torchmetrics.Accuracy()
+            accuracy = torchmetrics.Accuracy(num_classes=num_classes, multiclass =True)
             metric = accuracy(pred, target)
             return metric
         else:
