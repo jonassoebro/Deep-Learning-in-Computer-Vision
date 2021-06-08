@@ -22,7 +22,7 @@ class EngineModule(pl.LightningModule):
     def forward(self, x):
         return self.model(x)
 
-    def compute_metrics(self, pred, target, num_classes):
+    def compute_metrics(self, pred, target, num_classes=2):
         metric_name = self.config.training.metric
         if metric_name == "F1":
             f1 = F1(num_classes=num_classes)
