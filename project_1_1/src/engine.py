@@ -33,7 +33,7 @@ class EngineModule(pl.LightningModule):
         loss = self.loss_func(pred, labels.type(torch.float32))
         self.log('loss', loss, on_step=False, on_epoch=True, prog_bar=False, logger=True)
         self.log('lr', self.lr, on_step=False, on_epoch=True, prog_bar=False, logger=True)
-        self.train_acc((pred>0.5).float(), labels.type(torch.IntTensor))
+        self.train_acc((pred>0.5).float().to(device='cuda'), labels.type(torch.IntTensor))
         self.log('train_acc', self.train_acc, on_step=True, on_epoch=False)
         return {'loss': loss, 'train_acc': train_acc}
 
@@ -45,7 +45,7 @@ class EngineModule(pl.LightningModule):
         pred = self.model(images).squeeze()  # [Bx1] -> [B]
         loss = self.loss_func(pred, labels.type(torch.float32))
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.valid_acc((pred>0.5).float(), labels.type(torch.IntTensor))
+        self.valid_acc((pred>0.5).float().to(device='cuda'), labels.type(torch.IntTensor))
         self.log('valid_acc', self.valid_acc, on_step=True, on_epoch=True)
         return {'val_loss': loss, 'valid_acc': valid_acc}
 
