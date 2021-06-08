@@ -24,10 +24,13 @@ class EngineModule(pl.LightningModule):
 
     def compute_metrics(self, pred, target, num_classes=2):
         metric_name = self.config.training.metric
+        
+        pred = (pred>0.5).float()
+        target = target.type(torch.IntTensor)
+            
         if metric_name == "F1":
             f1 = torchmetrics.F1(num_classes=num_classes, multiclass=True)
-            
-            target = target.type(torch.IntTensor)
+
             #print(pred.shape)
             #print(target.shape)
             metric = f1(pred, target)
