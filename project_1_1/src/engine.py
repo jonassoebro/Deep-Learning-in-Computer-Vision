@@ -43,7 +43,7 @@ class EngineModule(pl.LightningModule):
         images, labels = batch
         pred = self.model(images).squeeze()  # [Bx1] -> [B]
         loss = self.loss_func(pred, labels.type(torch.float32))
-        metric = self.compute_metrics(pred, labels.type(torch.float32))
+        metric = self.compute_metrics(pred, labels)
         self.log('metric', metric, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log('loss', loss, on_step=False, on_epoch=True, prog_bar=False, logger=True)
         self.log('lr', self.lr, on_step=False, on_epoch=True, prog_bar=False, logger=True)
